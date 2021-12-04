@@ -144,6 +144,7 @@ public class FunctionDriver {
         return "No invoice found for current guest.";
     }
 
+    //Add a surcharge to an existing reservation
     public String updateAmountOwed() throws SQLException {
         stmt = conn.createStatement();
         System.out.print("Enter booking ID which to update fee: ");
@@ -156,7 +157,7 @@ public class FunctionDriver {
         return "Booking updated with new charges.";
     }
 
-
+    //Create a new reservation for an existing user
     public String createNewReservationForExistingUser() throws SQLException {
         stmt = conn.createStatement();
         System.out.println("To create a new reservation, fill information below");
@@ -193,6 +194,7 @@ public class FunctionDriver {
         return "Unable to create new reservation.";
     }
 
+    //Cancel a guests reservation
     public String cancelGuestReservation() throws SQLException {
         stmt = conn.createStatement();
         System.out.print("Enter the booking ID you wish to cancel: ");
@@ -203,18 +205,20 @@ public class FunctionDriver {
         return "Successfully cancelled reservation.";
     }
 
+    //Extend a guests reservation by a new date
     public String extendGuestReservation() throws SQLException {
         stmt = conn.createStatement();
         System.out.print("Enter the booking ID you wish to extend: ");
         String bookingID = scan.next();
-        System.out.print("Enter the amount of days you wish to extend: ");
+        System.out.print("Enter the new end date: ");
         String extendedInput = scan.next();
-        String query = "update booking set cod = cod + (" + extendedInput + ") where bID = (" + bookingID + ");";
+        String query = "update booking set cod = ('" + extendedInput + "') where bID = (" + bookingID + ");";
         stmt.executeUpdate(query);
 
         return "Successfully extended reservation.";
     }
 
+    //Show the different room types and their rates
     public String showRoomType() throws SQLException {
         String queryResult = null;
         stmt = conn.createStatement();
@@ -233,39 +237,97 @@ public class FunctionDriver {
         return "Availability pending and surcharges ";
     }
 
-    public String showReservationByGuestName() throws SQLException {
-        String queryResult = null;
+    //Show number of bookings from a guest, including present, past, and future
+    public String totalBookingByGuest() throws SQLException {
+        int queryResult = 0;
         stmt = conn.createStatement();
-        System.out.println("Enter guest's name to check reservation history");
+        System.out.print("Enter user's ID to check reservation history: ");
+        String userInput = scan.next();
+        String query = "select count(*) from booking inner join guest on guest.uID = Booking.uID group by Guest.uID having Guest.uID = (" + userInput + ");";
+        rs = stmt.executeQuery(query);
+        if (rs.isBeforeFirst()) {
+            while (rs.next()) {
+                queryResult = rs.getInt("count(*)");
+            }
+            return "User ID " + userInput + " has " + queryResult + " bookings";
+        }
         return "Unable to find reservation under guest name.";
     }
 
-    public String showNumberOfCheckedRooms() throws SQLException {
-        String queryResult = null;
+    //Show all current empty rooms
+    public String currentEmptyRooms() throws SQLException {
+        int queryResult;
+        int roomCount = 0;
         stmt = conn.createStatement();
-
-        return "Unable to find checked rooms for guest.";
+        String query = "Select * from Room left outer join Booking on Room.rnum = Booking.rnum where Booking.rnum is NULL or not (Booking.cid <= current_timestamp() and Booking.cod >= current_timestamp());";
+        rs = stmt.executeQuery(query);
+        if (rs.isBeforeFirst()) {
+            while (rs.next()) {
+                queryResult = rs.getInt("rnum");
+                System.out.println("Room " + queryResult + " is open.");
+                roomCount++;
+            }
+        }
+        return roomCount + " open rooms.";
     }
 
-    public String changeBookedRoom() throws SQLException {
-        String queryResult = null;
+    //List all user IDs across both bookings and guest tables
+    public String listUserID() throws SQLException {
+        int queryResult;
+        int userIDcounter = 0;
         stmt = conn.createStatement();
+        String query = "select uID from Guest union all select uID from booking;";
+        rs = stmt.executeQuery(query);
+        if (rs.isBeforeFirst()) {
+            while (rs.next()) {
+                queryResult = rs.getInt("uID");
+                System.out.println("User ID " + queryResult + " is in booking and invoice");
+                userIDcounter++;
+            }
+        }
 
-        return "Unable to change booked room.";
+        return userIDcounter + " user IDs (including duplicates)";
     }
 
-    public String showCOD() throws SQLException {
-        String queryResult = null;
-        stmt = conn.createStatement();
-
-        return "Unable to find chcekout date.";
-    }
-
+    //Add a new guest to the guest table
     public String createGuest() throws SQLException {
-        String queryResult = null;
+        boolean ageLimit = true;
+        int ageInput = 0;
         stmt = conn.createStatement();
+        System.out.print("Please enter the full name of new guest: ");
+        String nameInput = scan.nextLine();
+        while (ageLimit) {
+            System.out.print("Please enter age of new guest: ");
+            ageInput = scan.nextInt();
+            if (ageInput >= 18)
+                ageLimit = false;
+        }
+        String query = "insert into guest values ((uID), ('" + nameInput + "'), (" + ageInput + "));";
+        stmt.executeUpdate(query);
 
-        return "Unable to create user.";
+        return "Successfully added new guest.";
+    }
+
+    //Archive invoices 2 weeks outside of current date and show archived invocies
+    //Manually setting the timestamp to +1 month so we can demonstrate archive invoice
+    public String archiveInvoices() throws SQLException {
+        stmt = conn.createStatement();
+        String archiveInvoices = "call ArchInvoice(current_timestamp+INTERVAL 1 MONTH);";
+        stmt.executeUpdate(archiveInvoices);
+        String showArchivedInvoices = "select * from ArchivedInvoices;";
+        rs = stmt.executeQuery(showArchivedInvoices);
+        if (rs.isBeforeFirst()) {
+            System.out.println("-----------------Archived Invoices-----------------");
+            while (rs.next()) {
+                int pID = rs.getInt("pID");
+                int bID = rs.getInt("bID");
+                int total = rs.getInt("total");
+                System.out.println("Payment ID " + pID + " with booking ID " + bID + " has total of $" + total);
+
+            }
+            return "Successfully archived invoices";
+        }
+        return "Error archiving invoices";
     }
 }
 

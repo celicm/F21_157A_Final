@@ -20,10 +20,11 @@ public class Main {
             "9. Cancel guest's reservation\n" +
             "10. Extend guest's reservation\n" +
             "11. Show guest type of rooms\n" +
-            "12. Search for reservation by guest name\n" +
-            "13. Show how many rooms guest has checked out\n" +
-            "14. Change hotel room for guest booking\n" +
-            "15. Show which guest are leaving by date\n";
+            "12. Show total bookings for a guest\n" +
+            "13. Show the current available rooms\n" +
+            "14. Show list of all guest user IDs from bookings\n" +
+            "15. Add a new guest to the system\n" +
+            "16. Archive invoices and show archived invoices\n";
 
     public static void main (String[] args){
         Scanner scan = new Scanner(System.in);
@@ -97,19 +98,23 @@ public class Main {
                             System.out.println(qResult);
                             break;
                         case "12":
-                            qResult = fd.showReservationByGuestName();
+                            qResult = fd.totalBookingByGuest();
                             System.out.println(qResult);
                             break;
                         case "13":
-                            qResult = fd.showNumberOfCheckedRooms();
+                            qResult = fd.currentEmptyRooms();
                             System.out.println(qResult);
                             break;
                         case "14":
-                            qResult = fd.changeBookedRoom();
+                            qResult = fd.listUserID();
                             System.out.println(qResult);
                             break;
                         case "15":
-                            qResult = fd.showCOD();
+                            qResult = fd.createGuest();
+                            System.out.println(qResult);
+                            break;
+                        case "16":
+                            qResult = fd.archiveInvoices();
                             System.out.println(qResult);
                             break;
 
