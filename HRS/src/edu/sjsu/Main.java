@@ -24,7 +24,8 @@ public class Main {
             "13. Show the current available rooms\n" +
             "14. Show list of all guest user IDs from bookings\n" +
             "15. Add a new guest to the system\n" +
-            "16. Archive invoices and show archived invoices\n";
+            "16. Archive invoices and show archived invoices\n" +
+            "17. Show users with greater than 1 booking\n";
 
     public static void main (String[] args){
         Scanner scan = new Scanner(System.in);
@@ -117,7 +118,10 @@ public class Main {
                             qResult = fd.archiveInvoices();
                             System.out.println(qResult);
                             break;
-
+                        case "17":
+                            qResult = fd.showGuestsWithMoreThanOneBooking();
+                            System.out.println(qResult);
+                            break;
                     }
                 }
                 System.out.println("Enter another selection to continue, type 'help' for options, type 'exit' to exit");

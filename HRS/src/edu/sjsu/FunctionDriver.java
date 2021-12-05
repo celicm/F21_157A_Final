@@ -178,7 +178,7 @@ public class FunctionDriver {
             stmt.executeUpdate(query);
         }
         catch (SQLIntegrityConstraintViolationException e) {
-            return "Room already occupied";
+            return e.getMessage();
         }
         String validateQuery ="Select rnum from booking where uID = (" + userInput + ");";
         rs = stmt.executeQuery(validateQuery);
@@ -328,6 +328,22 @@ public class FunctionDriver {
             return "Successfully archived invoices";
         }
         return "Error archiving invoices";
+    }
+
+    public String showGuestsWithMoreThanOneBooking() throws SQLException {
+        int userID;
+        int bookingCounter = 0;
+        stmt = conn.createStatement();
+        String query = "Select uID from Guest where (select count(*) from Booking where Booking.uID = Guest.uID) >= 2;";
+        rs = stmt.executeQuery(query);
+        if (rs.isBeforeFirst()) {
+            while (rs.next()) {
+                userID = rs.getInt("uID");
+                System.out.println("User ID " + userID + " has more than 1 booking");
+                bookingCounter++;
+            }
+        }
+        return bookingCounter + " users have greater than 1 booking.";
     }
 }
 
